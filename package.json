@@ -1,0 +1,19 @@
+{
+  "name": "bmd-videohub-client",
+  "version": "0.0.1",
+  "description": "A npm package for the Blackmagic Design Videohub",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshua22s/bmd-videohub.git"
+  },
+  "author": "Joshua Schers",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/joshua22s/bmd-videohub/issues"
+  },
+  "homepage": "https://github.com/joshua22s/bmd-videohub#readme"
+}
