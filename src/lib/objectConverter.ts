@@ -1,12 +1,13 @@
-import { Command } from "./command";
-import { Label } from "./label";
-import { Route } from "./route";
+import { Command } from "./models/command";
+import { Label } from "./models/label";
+import { LockState } from "./models/lockState";
+import { Route } from "./models/route";
 
 export function convertToObject(data: string): any {
     var obj: any = {};
     switch (data.split("\n", 1)[0]) {
         case "PROTOCOL PREAMBLE:":
-            obj.type = "protocol";
+            obj.command = "protocol";
             var dataList = data.split("\n");
             for (var i = 1; i < dataList.length; i++) {
                 var rowPropertyValue = dataList[i].split(":");
@@ -74,10 +75,20 @@ export function convertObjectToRoutes(obj: any): Route[] {
     var routes: Route[] = [];
     for (var key of Object.keys(obj)) {
         if (key && key != "command") {
-            routes.push(new Route(+key, obj[key]));
+            routes.push(new Route(+key, obj[key], LockState.UNLOCKED));
         }
     }
     return routes;
+}
+
+export function convertObjectToLockStates(obj: any): any {
+    var lockStates: any[] = [];
+    for (var key of Object.keys(obj)) {
+        if (key && key != "command") {
+            lockStates.push({"output": key, "state": obj[key]});
+        }
+    }
+    return lockStates;
 }
 
 function convertStringToObject(toConvert: string): any {

@@ -1,5 +1,5 @@
-import { Label } from "./label";
-import { Route } from "./route";
+import { Label } from "./models/label";
+import { Route } from "./models/route";
 
 export module StateStorage {
     export var inputLabelsStates: Label[];

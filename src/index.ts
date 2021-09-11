@@ -1,15 +1,15 @@
 import * as net from "net";
 import * as converter from "./lib/objectConverter";
-import { Subject, Observable, Subscription } from "rxjs";
-import { Command } from "./lib/command";
+import { Subject } from "rxjs";
+import { Command } from "./lib/models/command";
 import { StateStorage } from "./lib/stateStorage";
-import { Label } from "./lib/label";
-import { Route } from "./lib/route";
+import { Label } from "./lib/models/label";
+import { Route } from "./lib/models/route";
+import { LockState } from "./lib/models/lockState";
 var client = new net.Socket();
 
-var deviceInfo = {};
 
-export * from './lib/command';
+export * from './lib/models/command';
 
 export module Videohub {
 
@@ -22,6 +22,7 @@ export module Videohub {
                 var obj = converter.convertToObject(dataObj);
                 switch (obj.command) {
                     case "information":
+                        delete obj.command;
                         StateStorage.deviceInfo = obj;
                         break;
                     case Command.INPUT_LABELS:
@@ -55,9 +56,16 @@ export module Videohub {
                             }
                         }
                         break;
-                }
-                if (obj.type == "information") {
-                    deviceInfo = obj;
+                    case Command.VIDEO_OUTPUT_LOCKS:
+                        if (StateStorage.outputRouting) {
+                            var lockStates = converter.convertObjectToLockStates(obj);
+                            for (let state of lockStates) {
+                                var routeFound = StateStorage.outputRouting.find(x => x.output == state.output);
+                                if (routeFound) {
+                                    routeFound.locked = state.state as LockState;
+                                }
+                            }
+                        }
                 }
                 objs.push(obj);
             }
@@ -78,10 +86,10 @@ export module Videohub {
     }
 
     export function getDeviceInfo() {
-        return deviceInfo;
+        return StateStorage.deviceInfo;
     }
 
-    export function sendDataCommand(command: Command) {
+    export function sendDataCommand(command: Command | string) {
         client.write(command + "\n\n");
     }
 
@@ -89,11 +97,41 @@ export module Videohub {
         return StateStorage.inputLabelsStates;
     }
 
+    export function changeInputLabel(label: Label) {
+        var command = Command.INPUT_LABELS + "\n";
+        command += `${label.index} ${label.text}`;
+        sendDataCommand(command);
+    }
+
     export function getOutputLabels(): Label[] {
         return StateStorage.outputLabelStates;
     }
 
+    export function changeOutputLabel(label: Label) {
+        var command = Command.OUTPUT_LABELS + "\n";
+        command += `${label.index} ${label.text}`;
+        sendDataCommand(command);
+    }
+
     export function getOutputRouting(): Route[] {
         return StateStorage.outputRouting;
+    }
+
+    export function changeOutputRoute(route: Route) {
+        var command = Command.VIDEO_OUTPUT_ROUTING + "\n";
+        command += `${route.output} ${route.input}`;
+        sendDataCommand(command);
+    }
+
+    export function lockOutput(outputIndex: number) {
+        var command = Command.VIDEO_OUTPUT_LOCKS + "\n";
+        command += `${outputIndex} O`;
+        sendDataCommand(command);
+    }
+
+    export function unlockOutput(outputIndex: number) {
+        var command = Command.VIDEO_OUTPUT_LOCKS + "\n";
+        command += `${outputIndex} U`;
+        sendDataCommand(command);
     }
 }
