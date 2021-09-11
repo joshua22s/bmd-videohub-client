@@ -25,7 +25,7 @@ Input and output numbers are index based meaning input 1 = 0 and so on.
     });
     
     process.on('SIGINT', () => {
-		Videohub.disconnect();
+	    Videohub.disconnect();
 		process.exit();
 	});
 
@@ -143,12 +143,12 @@ Unlocks an output.
 ## Models
 
 ### Label
-index: number;
+index: number;  
 text: string;
 
 ### Route
-output: number;
-input: number;
+output: number;  
+input: number;  
 locked: LockState;
 
 ### LockState (enum)
