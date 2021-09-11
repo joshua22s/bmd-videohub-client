@@ -76,7 +76,9 @@ export module Videohub {
     export function connect(ip: string, port: number): Promise<string> {
         return new Promise((resolve, reject) => {
             client.connect(port, ip, () => {
-                resolve("connected");
+                setTimeout(() => {
+                    resolve("connected");
+                }, 10);
             });
         })
     }
@@ -97,9 +99,9 @@ export module Videohub {
         return StateStorage.inputLabelsStates;
     }
 
-    export function changeInputLabel(label: Label) {
+    export function changeInputLabel(index: number, text: string) {
         var command = Command.INPUT_LABELS + "\n";
-        command += `${label.index} ${label.text}`;
+        command += `${index} ${text}`;
         sendDataCommand(command);
     }
 
@@ -107,9 +109,9 @@ export module Videohub {
         return StateStorage.outputLabelStates;
     }
 
-    export function changeOutputLabel(label: Label) {
+    export function changeOutputLabel(index: number, text: string) {
         var command = Command.OUTPUT_LABELS + "\n";
-        command += `${label.index} ${label.text}`;
+        command += `${index} ${text}`;
         sendDataCommand(command);
     }
 
@@ -117,21 +119,21 @@ export module Videohub {
         return StateStorage.outputRouting;
     }
 
-    export function changeOutputRoute(route: Route) {
+    export function changeOutputRoute(output: number, input: number) {
         var command = Command.VIDEO_OUTPUT_ROUTING + "\n";
-        command += `${route.output} ${route.input}`;
+        command += `${output} ${input}`;
         sendDataCommand(command);
     }
 
-    export function lockOutput(outputIndex: number) {
+    export function lockOutput(output: number) {
         var command = Command.VIDEO_OUTPUT_LOCKS + "\n";
-        command += `${outputIndex} O`;
+        command += `${output} ${LockState.LOCKED_FROM_THIS_DEVICE}`;
         sendDataCommand(command);
     }
 
-    export function unlockOutput(outputIndex: number) {
+    export function unlockOutput(output: number) {
         var command = Command.VIDEO_OUTPUT_LOCKS + "\n";
-        command += `${outputIndex} U`;
+        command += `${output} ${LockState.UNLOCKED}`;
         sendDataCommand(command);
     }
 }

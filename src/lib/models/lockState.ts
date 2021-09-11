@@ -1,5 +1,5 @@
 export enum LockState {
-    LOCKED_FROM_OTHER_CLIENT = 'L',
-    LOCKED_FROM_THIS_CLIENT = 'O',
+    LOCKED_FROM_OTHER_DEVICE = 'L',
+    LOCKED_FROM_THIS_DEVICE = 'O',
     UNLOCKED = 'U'
 }
