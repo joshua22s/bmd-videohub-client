@@ -26,7 +26,7 @@ Input and output numbers are index based meaning input 1 = 0 and so on.
     
     process.on('SIGINT', () => {
 	    Videohub.disconnect();
-		process.exit();
+	    process.exit();
 	});
 
 
