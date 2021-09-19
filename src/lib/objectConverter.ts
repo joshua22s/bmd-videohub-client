@@ -61,11 +61,11 @@ export function convertToObject(data: string): any {
     return obj;
 }
 
-export function convertObjectToLabels(obj: any): Label[] {
+export function convertObjectToLabels(obj: any, type: string): Label[] {
     var labels: Label[] = [];
     for (var key of Object.keys(obj)) {
         if (key && key != "command") {
-            labels.push(new Label(+key, obj[key]));
+            labels.push(new Label(+key, obj[key], type));
         }
     }
     return labels;
@@ -75,7 +75,7 @@ export function convertObjectToRoutes(obj: any): Route[] {
     var routes: Route[] = [];
     for (var key of Object.keys(obj)) {
         if (key && key != "command") {
-            routes.push(new Route(+key, obj[key], LockState.UNLOCKED));
+            routes.push(new Route(+key, obj[key], LockState.UNLOCKED, "route"));
         }
     }
     return routes;
@@ -85,7 +85,7 @@ export function convertObjectToLockStates(obj: any): any {
     var lockStates: any[] = [];
     for (var key of Object.keys(obj)) {
         if (key && key != "command") {
-            lockStates.push({"output": key, "state": obj[key]});
+            lockStates.push({"output": key, "state": obj[key], type: "lock_state"});
         }
     }
     return lockStates;

@@ -28,10 +28,10 @@ export module Videohub {
                         break;
                     case Command.INPUT_LABELS:
                         if (!StateStorage.inputLabelsStates) {
-                            StateStorage.inputLabelsStates = converter.convertObjectToLabels(obj);
+                            StateStorage.inputLabelsStates = converter.convertObjectToLabels(obj, "input_label");
                             objs.push(StateStorage.inputLabelsStates);
                         } else {
-                            var labels = converter.convertObjectToLabels(obj);
+                            var labels = converter.convertObjectToLabels(obj, "input_label");
                             for (let label of labels) {
                                 var labelFound = StateStorage.inputLabelsStates.find(x => x.index == label.index);
                                 if (labelFound) {
@@ -43,10 +43,10 @@ export module Videohub {
                         break;
                     case Command.OUTPUT_LABELS:
                         if (!StateStorage.outputLabelStates) {
-                            StateStorage.outputLabelStates = converter.convertObjectToLabels(obj);;
+                            StateStorage.outputLabelStates = converter.convertObjectToLabels(obj, "output_label");;
                             objs.push(StateStorage.outputLabelStates);
                         } else {
-                            var labels = converter.convertObjectToLabels(obj);
+                            var labels = converter.convertObjectToLabels(obj, "output_label");
                             for (let label of labels) {
                                 var labelFound = StateStorage.outputLabelStates.find(x => x.index == label.index);
                                 if (labelFound) {
