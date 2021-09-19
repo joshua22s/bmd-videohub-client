@@ -29,6 +29,7 @@ export module Videohub {
                     case Command.INPUT_LABELS:
                         if (!StateStorage.inputLabelsStates) {
                             StateStorage.inputLabelsStates = converter.convertObjectToLabels(obj);
+                            objs.push(StateStorage.inputLabelsStates);
                         } else {
                             var labels = converter.convertObjectToLabels(obj);
                             for (let label of labels) {
@@ -37,12 +38,13 @@ export module Videohub {
                                     labelFound.text = label.text;
                                 }
                             }
+                            objs.push(labels);
                         }
-                        objs.push(StateStorage.inputLabelsStates);
                         break;
                     case Command.OUTPUT_LABELS:
                         if (!StateStorage.outputLabelStates) {
                             StateStorage.outputLabelStates = converter.convertObjectToLabels(obj);;
+                            objs.push(StateStorage.outputLabelStates);
                         } else {
                             var labels = converter.convertObjectToLabels(obj);
                             for (let label of labels) {
@@ -51,10 +53,10 @@ export module Videohub {
                                     labelFound.text = label.text;
                                 }
                             }
+                            objs.push(labels);
                         }
-                        objs.push(StateStorage.outputLabelStates);
                         break;
-                    case Command.VIDEO_OUTPUT_ROUTING:
+                        case Command.VIDEO_OUTPUT_ROUTING:
                         if (!StateStorage.outputRouting) {
                             StateStorage.outputRouting = converter.convertObjectToRoutes(obj);
                             objs.push(StateStorage.outputRouting);
@@ -88,12 +90,19 @@ export module Videohub {
 
     export function connect(ip: string, port: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            client.connect(port, ip, () => {
-                setTimeout(() => {
-                    resolve("connected");
-                }, 10);
-            });
-        })
+            try {
+                client.connect(port, ip, () => {
+                    setTimeout(() => {
+                        resolve("connected");
+                    }, 10);
+                });
+                client.on("error", (err) => {
+                    reject(err);
+                });
+            } catch (err) {
+                reject(err);
+            }
+        });
     }
 
     export function disconnect() {
