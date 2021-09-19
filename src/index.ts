@@ -16,7 +16,7 @@ export module Videohub {
     export var dataSubject = new Subject();
 
     client.on('data', (data) => {
-        var objs: string[] = [];
+        var objs: any[] = [];
         for (let dataObj of data.toString().split('\n\n')) {
             if (dataObj) {
                 var obj = converter.convertToObject(dataObj);
@@ -24,6 +24,7 @@ export module Videohub {
                     case "information":
                         delete obj.command;
                         StateStorage.deviceInfo = obj;
+                        objs.push(StateStorage.deviceInfo);
                         break;
                     case Command.INPUT_LABELS:
                         if (!StateStorage.inputLabelsStates) {
@@ -37,15 +38,26 @@ export module Videohub {
                                 }
                             }
                         }
+                        objs.push(StateStorage.inputLabelsStates);
                         break;
                     case Command.OUTPUT_LABELS:
                         if (!StateStorage.outputLabelStates) {
                             StateStorage.outputLabelStates = converter.convertObjectToLabels(obj);;
+                        } else {
+                            var labels = converter.convertObjectToLabels(obj);
+                            for (let label of labels) {
+                                var labelFound = StateStorage.outputLabelStates.find(x => x.index == label.index);
+                                if (labelFound) {
+                                    labelFound.text = label.text;
+                                }
+                            }
                         }
+                        objs.push(StateStorage.outputLabelStates);
                         break;
                     case Command.VIDEO_OUTPUT_ROUTING:
                         if (!StateStorage.outputRouting) {
                             StateStorage.outputRouting = converter.convertObjectToRoutes(obj);
+                            objs.push(StateStorage.outputRouting);
                         } else {
                             var routes = converter.convertObjectToRoutes(obj);
                             for (let route of routes) {
@@ -54,6 +66,7 @@ export module Videohub {
                                     routeFound.input = route.input;
                                 }
                             }
+                            objs.push(routes);
                         }
                         break;
                     case Command.VIDEO_OUTPUT_LOCKS:
@@ -65,9 +78,9 @@ export module Videohub {
                                     routeFound.locked = state.state as LockState;
                                 }
                             }
+                            objs.push(lockStates);
                         }
                 }
-                objs.push(obj);
             }
         }
         dataSubject.next(objs);
