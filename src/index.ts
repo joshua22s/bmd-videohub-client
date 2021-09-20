@@ -149,7 +149,7 @@ export module Videohub {
 
     export function lockOutput(output: number) {
         var command = Command.VIDEO_OUTPUT_LOCKS + "\n";
-        command += `${output} ${LockState.LOCKED_FROM_THIS_DEVICE}`;
+        command += `${output} ${LockState.LOCKED_FROM_OTHER_DEVICE}`;
         sendDataCommand(command);
     }
 
