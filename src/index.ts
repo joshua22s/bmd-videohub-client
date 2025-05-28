@@ -15,78 +15,94 @@ export module Videohub {
 
     export var dataSubject = new Subject();
 
+    let buffer = '';
+
     client.on('data', (data) => {
-        var objs: any[] = [];
-        for (let dataObj of data.toString().split('\n\n')) {
-            if (dataObj) {
-                var obj = converter.convertToObject(dataObj);
+        buffer += data.toString();
+    
+        // Split by double newline (message delimiter)
+        const parts = buffer.split('\n\n');
+    
+        // Keep the last partial chunk in the buffer
+        buffer = parts.pop() ?? '';
+    
+        const objs: any[] = [];
+    
+        for (let part of parts) {
+            if (!part.trim()) continue;
+    
+            try {
+                const obj = converter.convertToObject(part);
+    
                 switch (obj.command) {
                     case "information":
                         delete obj.command;
                         StateStorage.deviceInfo = obj;
                         objs.push(StateStorage.deviceInfo);
                         break;
+    
                     case Command.INPUT_LABELS:
+                        const inputLabels = converter.convertObjectToLabels(obj, "input_label");
                         if (!StateStorage.inputLabelsStates) {
-                            StateStorage.inputLabelsStates = converter.convertObjectToLabels(obj, "input_label");
-                            objs.push(StateStorage.inputLabelsStates);
+                            StateStorage.inputLabelsStates = inputLabels;
+                            objs.push(inputLabels);
                         } else {
-                            var labels = converter.convertObjectToLabels(obj, "input_label");
-                            for (let label of labels) {
-                                var labelFound = StateStorage.inputLabelsStates.find(x => x.index == label.index);
-                                if (labelFound) {
-                                    labelFound.text = label.text;
-                                }
+                            for (const label of inputLabels) {
+                                const found = StateStorage.inputLabelsStates.find(x => x.index === label.index);
+                                if (found) found.text = label.text;
                             }
-                            objs.push(labels);
+                            objs.push(inputLabels);
                         }
                         break;
+    
                     case Command.OUTPUT_LABELS:
+                        const outputLabels = converter.convertObjectToLabels(obj, "output_label");
                         if (!StateStorage.outputLabelStates) {
-                            StateStorage.outputLabelStates = converter.convertObjectToLabels(obj, "output_label");;
-                            objs.push(StateStorage.outputLabelStates);
+                            StateStorage.outputLabelStates = outputLabels;
+                            objs.push(outputLabels);
                         } else {
-                            var labels = converter.convertObjectToLabels(obj, "output_label");
-                            for (let label of labels) {
-                                var labelFound = StateStorage.outputLabelStates.find(x => x.index == label.index);
-                                if (labelFound) {
-                                    labelFound.text = label.text;
-                                }
+                            for (const label of outputLabels) {
+                                const found = StateStorage.outputLabelStates.find(x => x.index === label.index);
+                                if (found) found.text = label.text;
                             }
-                            objs.push(labels);
+                            objs.push(outputLabels);
                         }
                         break;
-                        case Command.VIDEO_OUTPUT_ROUTING:
+    
+                    case Command.VIDEO_OUTPUT_ROUTING:
+                        const routes = converter.convertObjectToRoutes(obj);
                         if (!StateStorage.outputRouting) {
-                            StateStorage.outputRouting = converter.convertObjectToRoutes(obj);
-                            objs.push(StateStorage.outputRouting);
+                            StateStorage.outputRouting = routes;
+                            objs.push(routes);
                         } else {
-                            var routes = converter.convertObjectToRoutes(obj);
-                            for (let route of routes) {
-                                var routeFound = StateStorage.outputRouting.find(x => x.output == route.output);
-                                if (routeFound) {
-                                    routeFound.input = route.input;
-                                }
+                            for (const route of routes) {
+                                const found = StateStorage.outputRouting.find(x => x.output === route.output);
+                                if (found) found.input = route.input;
                             }
                             objs.push(routes);
                         }
                         break;
+    
                     case Command.VIDEO_OUTPUT_LOCKS:
-                        if (StateStorage.outputRouting) {
-                            var lockStates = converter.convertObjectToLockStates(obj);
-                            for (let state of lockStates) {
-                                var routeFound = StateStorage.outputRouting.find(x => x.output == state.output);
-                                if (routeFound) {
-                                    routeFound.locked = state.state as LockState;
-                                }
-                            }
-                            objs.push(lockStates);
+                        const lockStates = converter.convertObjectToLockStates(obj);
+                        for (const lock of lockStates) {
+                            const found = StateStorage.outputRouting?.find(x => x.output === lock.output);
+                            if (found) found.locked = lock.state as LockState;
                         }
+                        objs.push(lockStates);
+                        break;
                 }
+            } catch (err) {
+                console.warn('Failed to parse part:', part);
+                console.error(err);
             }
         }
-        dataSubject.next(objs);
+    
+        if (objs.length > 0) {
+            dataSubject.next(objs);
+        }
     });
+    
 
     export function connect(ip: string, port: number): Promise<string> {
         return new Promise((resolve, reject) => {
